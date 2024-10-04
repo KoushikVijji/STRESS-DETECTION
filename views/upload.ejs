@@ -1,0 +1,30 @@
+<%- include('partials/header'); -%>
+
+<form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+  <h2>Upload Image</h2>
+  <div class="preview"></div>
+  <input type="file" id="fileElem" name="image" accept="image/*" style="display: none" />
+  <label for="fileElem" class="btn">Select file</label>
+  <button type="submit" class="upload-btn">Upload</button>
+</form>
+
+<%- include('partials/footer'); -%>
+
+<script>
+  const preview = document.querySelector(".preview");
+  const fileElem = document.getElementById("fileElem");
+
+  fileElem.addEventListener("change", () => {
+    const fileList = fileElem.files;
+    preview.innerHTML = "";
+    for (let i = 0; i < fileList.length; i++) {
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(fileList[i]);
+      img.height = 100;
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+      };
+      preview.appendChild(img);
+    }
+  });
+</script>
