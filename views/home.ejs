@@ -1,24 +1,146 @@
 <%- include('partials/header'); -%>
 
 <main>
-  <article>
+  <% if (user && user.role.includes('admin')) { %>
+    <h1>Admin Dashboard</h1>
+    <table class="image-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Image Preview</th>
+          <th>Date Uploaded</th>
+          <th>Prediction</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% images.forEach((image) => { %>
+          <% image.images.forEach((img, index) => { %>
+            <tr>
+              <% if (index === 0) { %>
+                <td class="username-cell" rowspan="<%= image.images.length %>"><%= image.userId.username %></td>
+              <% } %>
+              <td class="image-preview-cell">
+                <div class="image-container">
+                  <p><strong>Image <%= index + 1 %>:</strong></p>
+                  <img 
+                    src="data:<%= img.contentType %>;base64,<%= img.data.toString('base64') %>" 
+                    alt="Image preview" 
+                    class="image-preview" />
+                </div>
+              </td>
+              <td class="date-cell">
+                <p><strong>Uploaded at:</strong> <%= new Date(img.uploadedAt).toLocaleString() %></p>
+              </td>
+              <td class="prediction-cell">
+                <% if (img.prediction) { %>
+                  <%= img.prediction %>
+                <% } else { %>
+                  <p>Pending</p>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } else { %>
+    <article>
       <h1>Stress Detection in IT Professionals</h1>
       <p>by Image Processing and Machine Learning</p>
 
       <p>
-      The main motive of our project is to detect stress in the IT
-      professionals using vivid Machine learning and Image processing
-      techniques. Our system is an upgraded version of the old stress
-      detection systems which excluded the live detection and the personal
-      counseling but this system comprises of live detection and periodic
-      analysis of employees and detecting physical as well as mental stress
-      levels in his/her by providing them with proper remedies for managing
-      stress by providing survey form periodically. Our system mainly
-      focuses on managing stress and making the working environment healthy
-      and spontaneous for the employees and to get the best out of them
-      during working hours.
+        The main motive of our project is to detect stress in IT professionals
+        using vivid Machine learning and Image processing techniques. Our system
+        is an upgraded version of the old stress detection systems which excluded
+        the live detection and the personal counseling but this system comprises
+        of live detection and periodic analysis of employees and detecting
+        physical as well as mental stress levels in his/her by providing them with
+        proper remedies for managing stress by providing survey form periodically.
+        Our system mainly focuses on managing stress and making the working
+        environment healthy and spontaneous for the employees and to get the best
+        out of them during working hours.
       </p>
-  </article>
+    </article>
+  <% } %>
 </main>
 
 <%- include('partials/footer'); -%>
+
+<style>
+  /* Table Styling */
+  .image-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: Arial, sans-serif;
+  }
+
+  .image-table th, .image-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+
+  .image-table th {
+    background-color: #f2f2f2;
+  }
+
+  .image-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .image-table tr:hover {
+    background-color: #f1f1f1;
+  }
+
+  /* Centering Username Vertically */
+  .username-cell {
+    vertical-align: middle;
+    text-align: center;
+    font-weight: bold;
+    background-color: #f2f2f2;
+    font-size: 16px;
+    padding: 10px 0;
+  }
+
+  /* Image Preview Styling */
+  .image-container {
+    margin-bottom: 10px;
+  }
+
+  .image-preview {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  /* Cell Styling */
+  .image-preview-cell,
+  .date-cell,
+  .prediction-cell {
+    text-align: center;
+  }
+
+  .date-cell p, 
+  .prediction-cell p {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  /* Prediction Styling */
+  .prediction-cell {
+    font-style: italic;
+    color: #777;
+  }
+
+  /* Text Styling */
+  p {
+    margin: 5px 0;
+  }
+
+  /* Styling for the Image Preview Column */
+  .image-preview-cell {
+    width: 200px;
+  }
+</style>

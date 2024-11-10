@@ -3,14 +3,13 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/authRoutes");
 const cookieParser = require("cookie-parser");
 const { checkUser } = require("./middleware/authMiddleware");
+const authController = require('./controllers/authController');
 
 const app = express();
 
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cookieParser());
-
-app.set("view engine", "ejs");
 
 app.set("view engine", "ejs");
 
@@ -22,6 +21,6 @@ mongoose
   .catch((err) => console.log(err));
 
 app.get("*", checkUser);
-app.get("/", (req, res) => res.render("home"));
+app.get("/", authController.home);
 
 app.use(authRoutes);

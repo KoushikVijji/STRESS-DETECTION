@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const User = require('./User');
 
 
 const imageSchema = mongoose.Schema({
@@ -9,7 +10,8 @@ const imageSchema = mongoose.Schema({
     }, 
     images: [
         {
-          url: String,
+          data: Buffer,
+          contentType: String,
           filename: String,
           uploadedAt: {
             type: Date,
@@ -19,6 +21,6 @@ const imageSchema = mongoose.Schema({
       ]
 });
 
-const Image = mongoose.model("image", imageSchema);
+const Image = mongoose.model("Image", imageSchema);
 
 module.exports = Image;

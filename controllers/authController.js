@@ -103,6 +103,8 @@ module.exports.upload_post = async (req, res) => {
     }
 
     userImages.images.push({
+      data: file.buffer,
+      contentType: file.mimetype,
       filename: file.originalname,
       uploadedAt: Date.now(), 
     });
@@ -112,5 +114,22 @@ module.exports.upload_post = async (req, res) => {
     res.status(200).redirect('/upload');
   } catch (err) {
     res.status(500).json({ message: "Error uploading image", error: err.message });
+  }
+};
+
+module.exports.home = async (req, res) => {
+  try {
+    const user = res.locals.user; 
+
+    let images = [];
+
+    if (user && user.role.includes("admin")) {
+      images = await Image.find().populate('userId', 'username');
+   }  
+
+    res.render('home', { images });
+  } catch (err) {
+    console.error("Error fetching images:", err);
+    res.status(500).send("Error fetching images");
   }
 };
