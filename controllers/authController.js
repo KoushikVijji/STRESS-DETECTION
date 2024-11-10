@@ -111,9 +111,9 @@ module.exports.upload_post = async (req, res) => {
 
     await userImages.save();
 
-    res.status(200).redirect('/upload');
+    res.status(200).json({ success: true, message: "Image uploaded successfully." });
   } catch (err) {
-    res.status(500).json({ message: "Error uploading image", error: err.message });
+    res.status(500).json({ success: false, message: "Error uploading image.", error: err.message });
   }
 };
 

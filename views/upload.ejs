@@ -1,11 +1,45 @@
 <%- include('partials/header'); -%>
 
-<form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+<div class="alert-container"></div>
+
+<form
+  id="uploadForm"
+  action="/upload"
+  method="POST"
+  enctype="multipart/form-data"
+>
   <h2>Upload Image</h2>
   <div class="preview"></div>
-  <input type="file" id="fileElem" name="image" accept="image/*" style="display: none" />
+
+  <input
+    type="file"
+    id="fileElem"
+    name="image"
+    accept="image/*"
+    style="display: none"
+  />
   <label for="fileElem" class="btn">Select file</label>
+  <h3>OR</h3>
+  <button type="button" id="openCamera" class="btn">Use Camera</button>
+  <button type="button" id="captureImage" class="btn" style="display: none">
+    Capture Image
+  </button>
+  <br>
   <button type="submit" class="upload-btn">Upload</button>
+
+  <video
+    id="cameraFeed"
+    width="300"
+    height="200"
+    autoplay
+    style="display: none"
+  ></video>
+  <canvas
+    id="cameraCanvas"
+    width="300"
+    height="200"
+    style="display: none"
+  ></canvas>
 </form>
 
 <%- include('partials/footer'); -%>
@@ -13,6 +47,11 @@
 <script>
   const preview = document.querySelector(".preview");
   const fileElem = document.getElementById("fileElem");
+  const alertContainer = document.querySelector(".alert-container");
+  const openCameraButton = document.getElementById("openCamera");
+  const captureImageButton = document.getElementById("captureImage");
+  const cameraFeed = document.getElementById("cameraFeed");
+  const cameraCanvas = document.getElementById("cameraCanvas");
 
   fileElem.addEventListener("change", () => {
     const fileList = fileElem.files;
@@ -27,4 +66,141 @@
       preview.appendChild(img);
     }
   });
+
+  openCameraButton.addEventListener("click", () => {
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        cameraFeed.srcObject = stream;
+        cameraFeed.style.display = "block";
+        captureImageButton.style.display = "inline-block";
+      })
+      .catch((err) => {
+        console.error("Error accessing the camera: ", err);
+        showAlert("Could not access camera", "error");
+      });
+  });
+
+  captureImageButton.addEventListener("click", () => {
+    const context = cameraCanvas.getContext("2d");
+    context.drawImage(
+      cameraFeed,
+      0,
+      0,
+      cameraCanvas.width,
+      cameraCanvas.height
+    );
+    const imageDataUrl = cameraCanvas.toDataURL("image/png");
+
+    preview.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = imageDataUrl;
+    img.height = 100;
+    preview.appendChild(img);
+
+    cameraFeed.srcObject.getTracks().forEach((track) => track.stop());
+    cameraFeed.style.display = "none";
+    captureImageButton.style.display = "none";
+
+    uploadForm.imageDataUrl = imageDataUrl;
+  });
+
+  const uploadForm = document.getElementById("uploadForm");
+  uploadForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const formData = new FormData(uploadForm);
+
+    if (uploadForm.imageDataUrl) {
+      formData.append(
+        "image",
+        dataURItoBlob(uploadForm.imageDataUrl),
+        "camera-image.png"
+      );
+    }
+
+    fetch(uploadForm.action, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showAlert("Image uploaded successfully!", "success");
+          preview.innerHTML = "";
+          fileElem.value = "";
+          uploadForm.imageDataUrl = null;
+        } else {
+          showAlert("Error uploading image.", "error");
+        }
+      })
+      .catch((error) => {
+        showAlert("Something went wrong. Please try again.", "error");
+      });
+  });
+
+  function showAlert(message, type) {
+    const alert = document.createElement("div");
+    alert.classList.add("alert", type);
+    alert.textContent = message;
+
+    alertContainer.appendChild(alert);
+
+    setTimeout(() => {
+      alert.remove();
+    }, 3000);
+  }
+
+  function dataURItoBlob(dataURI) {
+    const byteString = atob(dataURI.split(",")[1]);
+    const mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  }
 </script>
+
+<style>
+  .alert-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+  }
+
+  .alert {
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    color: white;
+    opacity: 0;
+    animation: fadeInOut 3s forwards;
+  }
+
+  .alert.success {
+    background-color: green;
+  }
+
+  .alert.error {
+    background-color: red;
+  }
+
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+</style>
